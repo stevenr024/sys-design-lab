@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Scale to Millions — Interactive Visualizations</title>
+  <link rel="stylesheet" href="./shared/styles.css">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main class="landing">
+    <header>
+      <h1>Scale From Zero to Millions of Users</h1>
+      <p class="lede">Interactive visualizations for the concepts in chapter 2 of the System Design Interview book. Each viz is a self-contained static page.</p>
+    </header>
+
+    <div class="viz-grid">
+      <a class="viz-card" href="./01-evolution/">
+        <div class="num">01</div>
+        <h3>Evolution Scrubber</h3>
+        <p>Scrub through the system architecture as it evolves from one server to a sharded, multi-region stack.</p>
+        <span class="status ready">ready</span>
+      </a>
+
+      <a class="viz-card" href="./02-failure-sim/">
+        <div class="num">02</div>
+        <h3>Failure Simulator</h3>
+        <p>Click any component to kill it. Watch traffic reroute — or the site go dark.</p>
+        <span class="status ready">ready</span>
+      </a>
+
+      <a class="viz-card" href="#" aria-disabled="true">
+        <div class="num">03</div>
+        <h3>Traffic Playground</h3>
+        <p>Ramp users from 1 to 10M. Add infrastructure as bottlenecks appear. Watch latency, errors, cost.</p>
+        <span class="status">planned</span>
+      </a>
+
+      <a class="viz-card" href="./04-sharding/">
+        <div class="num">04</div>
+        <h3>Sharding &amp; Hotspots</h3>
+        <p>Distribute users across shards by hash. Inject a celebrity key. Try fixes.</p>
+        <span class="status ready">ready</span>
+      </a>
+
+      <a class="viz-card" href="#" aria-disabled="true">
+        <div class="num">05</div>
+        <h3>Cache Visualizer</h3>
+        <p>Read-through cache with TTL countdowns and LRU/LFU/FIFO eviction side by side.</p>
+        <span class="status">planned</span>
+      </a>
+
+      <a class="viz-card" href="#" aria-disabled="true">
+        <div class="num">06</div>
+        <h3>Build Your Stack</h3>
+        <p>Traffic ticks up, you spend a budget on upgrades. Score: uptime &times; users &minus; cost.</p>
+        <span class="status">planned</span>
+      </a>
+    </div>
+  </main>
+</body>
+</html>

@@ -1,0 +1,66 @@
+/* Landing page — viz directory */
+
+.landing {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 3rem 2rem 5rem;
+}
+.landing header { margin-bottom: 2.5rem; }
+.landing h1 { font-size: 2rem; margin-bottom: 0.4rem; }
+.landing .lede {
+  color: var(--text-muted);
+  font-size: 1.05rem;
+  max-width: 60ch;
+}
+
+.viz-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.viz-card {
+  display: block;
+  padding: 1.25rem;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+.viz-card:hover {
+  border-color: var(--accent);
+  text-decoration: none;
+  transform: translateY(-2px);
+}
+.viz-card[aria-disabled="true"] {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.viz-card .num {
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  margin-bottom: 0.4rem;
+}
+.viz-card h3 {
+  color: var(--text);
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 1.05rem;
+  margin-bottom: 0.4rem;
+}
+.viz-card p {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.viz-card .status {
+  display: inline-block;
+  margin-top: 0.6rem;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+.viz-card .status.ready { color: var(--success); }

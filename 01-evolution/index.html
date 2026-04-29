@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Evolution Scrubber — Scale to Millions</title>
+  <link rel="stylesheet" href="../shared/styles.css">
+  <link rel="stylesheet" href="./styles.css">
+  <script src="./evolution.js"></script>
+  <script defer src="https://unpkg.com/alpinejs@3.14.1/dist/cdn.min.js"></script>
+</head>
+<body x-data="evolution" @keydown.window="onKeydown($event)">
+
+  <header class="site-header">
+    <a class="crumb" href="../">← all visualizations</a>
+    <h1>Evolution Scrubber</h1>
+    <span class="subtitle">scale a system from one server to millions of users</span>
+  </header>
+
+  <main>
+    <!-- ────────── canvas ────────── -->
+    <section class="canvas">
+      <svg viewBox="0 0 1000 650" preserveAspectRatio="xMidYMid meet" aria-label="System architecture diagram">
+        <defs>
+          <!-- Arrow marker that inherits the parent line's stroke color -->
+          <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5"
+                  markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="context-stroke"/>
+          </marker>
+        </defs>
+
+        <!-- ═══════════════════════ NODES ═══════════════════════ -->
+
+        <!-- ▸ User (always) -->
+        <g class="node" data-id="user"
+           :class="{visible: visibleAt(0)}"
+           transform="translate(30, 280)">
+          <rect width="100" height="60" rx="6"/>
+          <text class="label" x="50" y="26">User</text>
+          <text class="sub"   x="50" y="44">browser / app</text>
+        </g>
+
+        <!-- ▸ Single combined server (stage 0 only) -->
+        <g class="node" data-id="single-server"
+           data-killable="true"
+           :class="{visible: visibleAt(0, 0), dead: isDead('single-server')}"
+           @click="toggleDead('single-server')"
+           transform="translate(340, 230)">
+          <rect width="220" height="150" rx="8"/>
+          <text class="label" x="110" y="32">Single Server</text>
+          <text class="sub"   x="110" y="65">web app</text>
+          <text class="sub"   x="110" y="88">database</text>
+          <text class="sub"   x="110" y="111">cache</text>
+          <text class="hint"  x="110" y="135">click to kill</text>
+        </g>
+
+        <!-- ▸ Single web server (stage 1 only) -->
+        <g class="node" data-id="single-web"
+           data-killable="true"
+           :class="{visible: visibleAt(1, 1), dead: isDead('single-web')}"
+           @click="toggleDead('single-web')"
+           transform="translate(300, 280)">
+          <rect width="140" height="60" rx="6"/>
+          <text class="label" x="70" y="26">Web Server</text>
+          <text class="sub"   x="70" y="44">app logic</text>
+        </g>
+
+        <!-- ▸ Single database (stages 1-2 only) -->
+        <g class="node" data-id="single-db"
+           data-killable="true"
+           :class="{visible: visibleAt(1, 2), dead: isDead('single-db')}"
+           @click="toggleDead('single-db')"
+           transform="translate(570, 280)">
+          <rect width="140" height="60" rx="6"/>
+          <text class="label" x="70" y="26">Database</text>
+          <text class="sub"   x="70" y="44">SQL / NoSQL</text>
+        </g>
+
+        <!-- ▸ Load balancer (stage 2+) -->
+        <g class="node" data-id="lb"
+           data-killable="true"
+           :class="{visible: visibleAt(2), dead: isDead('lb')}"
+           @click="toggleDead('lb')"
+           transform="translate(185, 280)">
+          <rect width="110" height="60" rx="6"/>
+          <text class="label" x="55" y="26">Load Bal.</text>
+          <text class="sub"   x="55" y="44">public IP</text>
+        </g>
+
+        <!-- ▸ Web Server 1 (stage 2+) -->
+        <g class="node" data-id="web-1"
+           data-killable="true"
+           :class="{visible: visibleAt(2), dead: isDead('web-1')}"
+           @click="toggleDead('web-1')"
+           transform="translate(350, 215)">
+          <rect width="140" height="55" rx="6"/>
+          <text class="label" x="70" y="24">Web Server 1</text>
+          <text class="sub"   x="70" y="42">stateless</text>
+        </g>
+
+        <!-- ▸ Web Server 2 (stage 2+) -->
+        <g class="node" data-id="web-2"
+           data-killable="true"
+           :class="{visible: visibleAt(2), dead: isDead('web-2')}"
+           @click="toggleDead('web-2')"
+           transform="translate(350, 305)">
+          <rect width="140" height="55" rx="6"/>
+          <text class="label" x="70" y="24">Web Server 2</text>
+          <text class="sub"   x="70" y="42">stateless</text>
+        </g>
+
+        <!-- ▸ Master DB (stages 3-9) -->
+        <g class="node" data-id="master-db"
+           data-killable="true"
+           :class="{visible: visibleAt(3, 9), dead: isDead('master-db')}"
+           @click="toggleDead('master-db')"
+           transform="translate(610, 215)">
+          <rect width="140" height="55" rx="6"/>
+          <text class="label" x="70" y="24">Master DB</text>
+          <text class="sub"   x="70" y="42">writes</text>
+        </g>
+
+        <!-- ▸ Slave / Read replica (stages 3-9) -->
+        <g class="node" data-id="slave-db"
+           data-killable="true"
+           :class="{visible: visibleAt(3, 9), dead: isDead('slave-db')}"
+           @click="toggleDead('slave-db')"
+           transform="translate(610, 305)">
+          <rect width="140" height="55" rx="6"/>
+          <text class="label" x="70" y="24">Read Replica</text>
+          <text class="sub"   x="70" y="42">reads</text>
+        </g>
+
+        <!-- ▸ Cache (stage 4+) -->
+        <g class="node" data-id="cache"
+           data-killable="true"
+           :class="{visible: visibleAt(4), dead: isDead('cache')}"
+           @click="toggleDead('cache')"
+           transform="translate(610, 130)">
+          <rect width="140" height="50" rx="6"/>
+          <text class="label" x="70" y="22">Cache</text>
+          <text class="sub"   x="70" y="38">Redis / Memcached</text>
+        </g>
+
+        <!-- ▸ CDN (stage 5+) -->
+        <g class="node" data-id="cdn"
+           data-killable="true"
+           :class="{visible: visibleAt(5), dead: isDead('cdn')}"
+           @click="toggleDead('cdn')"
+           transform="translate(30, 80)">
+          <rect width="130" height="50" rx="6"/>
+          <text class="label" x="65" y="22">CDN</text>
+          <text class="sub"   x="65" y="38">edge cache</text>
+        </g>
+
+        <!-- ▸ Session store (stage 6+) -->
+        <g class="node" data-id="session-store"
+           data-killable="true"
+           :class="{visible: visibleAt(6), dead: isDead('session-store')}"
+           @click="toggleDead('session-store')"
+           transform="translate(350, 410)">
+          <rect width="140" height="55" rx="6"/>
+          <text class="label" x="70" y="24">Session Store</text>
+          <text class="sub"   x="70" y="42">shared state</text>
+        </g>
+
+        <!-- ▸ DC1/DC2 region badges (stage 7+) -->
+        <g class="badge-group" :class="{visible: visibleAt(7)}">
+          <g transform="translate(420, 25)">
+            <rect class="region-badge" width="160" height="28" rx="14"/>
+            <text class="region-text" x="80" y="18">geoDNS routes by region</text>
+          </g>
+          <g transform="translate(880, 220)">
+            <rect class="dc-stub" width="100" height="170" rx="8"/>
+            <text class="dc-stub-label" x="50" y="22">DC2</text>
+            <text class="dc-stub-sub"   x="50" y="42">us-west</text>
+            <text class="dc-stub-sub"   x="50" y="60">(mirrored)</text>
+            <!-- mini stack icons -->
+            <rect class="dc-stub-mini" x="20" y="80"  width="60" height="14" rx="2"/>
+            <rect class="dc-stub-mini" x="20" y="100" width="60" height="14" rx="2"/>
+            <rect class="dc-stub-mini" x="20" y="120" width="60" height="14" rx="2"/>
+            <rect class="dc-stub-mini" x="20" y="140" width="60" height="14" rx="2"/>
+          </g>
+        </g>
+
+        <!-- ▸ Message queue (stage 8+) -->
+        <g class="node" data-id="message-queue"
+           data-killable="true"
+           :class="{visible: visibleAt(8), dead: isDead('message-queue')}"
+           @click="toggleDead('message-queue')"
+           transform="translate(570, 410)">
+          <rect width="130" height="55" rx="6"/>
+          <text class="label" x="65" y="24">Message Q</text>
+          <text class="sub"   x="65" y="42">async buffer</text>
+        </g>
+
+        <!-- ▸ Worker (stage 8+) -->
+        <g class="node" data-id="worker"
+           data-killable="true"
+           :class="{visible: visibleAt(8), dead: isDead('worker')}"
+           @click="toggleDead('worker')"
+           transform="translate(740, 410)">
+          <rect width="130" height="55" rx="6"/>
+          <text class="label" x="65" y="24">Worker</text>
+          <text class="sub"   x="65" y="42">async jobs</text>
+        </g>
+
+        <!-- ▸ Observability strip (stage 9+) -->
+        <g class="node observability" data-id="observability"
+           :class="{visible: visibleAt(9)}"
+           transform="translate(30, 525)">
+          <rect width="840" height="55" rx="6"/>
+          <text class="label"  x="420" y="24">Logs · Metrics · Automation</text>
+          <text class="sub"    x="420" y="42">aggregation, alerting, CI/CD</text>
+        </g>
+
+        <!-- ▸ Shards (stage 10+) — replace master + slave -->
+        <g class="node" data-id="shard-1"
+           data-killable="true"
+           :class="{visible: visibleAt(10), dead: isDead('shard-1')}"
+           @click="toggleDead('shard-1')"
+           transform="translate(610, 200)">
+          <rect width="140" height="32" rx="4"/>
+          <text class="label" x="70" y="20">Shard 1</text>
+        </g>
+        <g class="node" data-id="shard-2"
+           data-killable="true"
+           :class="{visible: visibleAt(10), dead: isDead('shard-2')}"
+           @click="toggleDead('shard-2')"
+           transform="translate(610, 238)">
+          <rect width="140" height="32" rx="4"/>
+          <text class="label" x="70" y="20">Shard 2</text>
+        </g>
+        <g class="node" data-id="shard-3"
+           data-killable="true"
+           :class="{visible: visibleAt(10), dead: isDead('shard-3')}"
+           @click="toggleDead('shard-3')"
+           transform="translate(610, 276)">
+          <rect width="140" height="32" rx="4"/>
+          <text class="label" x="70" y="20">Shard 3</text>
+        </g>
+        <g class="node" data-id="shard-4"
+           data-killable="true"
+           :class="{visible: visibleAt(10), dead: isDead('shard-4')}"
+           @click="toggleDead('shard-4')"
+           transform="translate(610, 314)">
+          <rect width="140" height="32" rx="4"/>
+          <text class="label" x="70" y="20">Shard 4</text>
+        </g>
+
+        <!-- ▸ NoSQL store (stage 10+) -->
+        <g class="node" data-id="nosql"
+           data-killable="true"
+           :class="{visible: visibleAt(10), dead: isDead('nosql')}"
+           @click="toggleDead('nosql')"
+           transform="translate(770, 248)">
+          <rect width="90" height="100" rx="6"/>
+          <text class="label" x="45" y="38">NoSQL</text>
+          <text class="sub"   x="45" y="60">unstructured</text>
+        </g>
+
+
+        <!-- ═══════════════════════ LINKS ═══════════════════════ -->
+
+        <!-- user → single-server (stage 0) -->
+        <line class="link flow"
+              :class="{visible: visibleAt(0, 0), dead: isDead('single-server')}"
+              x1="130" y1="310" x2="335" y2="305"
+              marker-end="url(#arrow)"/>
+
+        <!-- user → single-web (stage 1) -->
+        <line class="link flow"
+              :class="{visible: visibleAt(1, 1), dead: isDead('single-web')}"
+              x1="130" y1="310" x2="295" y2="310"
+              marker-end="url(#arrow)"/>
+
+        <!-- single-web → single-db (stage 1) -->
+        <line class="link flow"
+              :class="{visible: visibleAt(1, 1), dead: isDead('single-web') || isDead('single-db')}"
+              x1="445" y1="310" x2="565" y2="310"
+              marker-end="url(#arrow)"/>
+
+        <!-- user → lb (stage 2+) -->
+        <line class="link flow"
+              :class="{visible: visibleAt(2), dead: isDead('lb')}"
+              x1="130" y1="310" x2="180" y2="310"
+              marker-end="url(#arrow)"/>
+
+        <!-- lb → web-1 (stage 2+) -->
+        <line class="link flow"
+              :class="{visible: visibleAt(2), dead: isDead('lb') || isDead('web-1')}"
+              x1="295" y1="298" x2="345" y2="245"
+              marker-end="url(#arrow)"/>
+
+        <!-- lb → web-2 (stage 2+) -->
+        <line class="link flow"
+              :class="{visible: visibleAt(2), dead: isDead('lb') || isDead('web-2')}"
+              x1="295" y1="322" x2="345" y2="330"
+              marker-end="url(#arrow)"/>
+
+        <!-- web-1 → single-db (stage 2 only) -->
+        <line class="link flow"
+              :class="{visible: visibleAt(2, 2), dead: isDead('web-1') || isDead('single-db')}"
+              x1="490" y1="245" x2="565" y2="298"
+              marker-end="url(#arrow)"/>
+
+        <!-- web-2 → single-db (stage 2 only) -->
+        <line class="link flow"
+              :class="{visible: visibleAt(2, 2), dead: isDead('web-2') || isDead('single-db')}"
+              x1="490" y1="330" x2="565" y2="320"
+              marker-end="url(#arrow)"/>
+
+        <!-- web-1 → master-db (stage 3-9) -->
+        <line class="link flow"
+              :class="{visible: visibleAt(3, 9), dead: isDead('web-1') || isDead('master-db')}"
+              x1="490" y1="242" x2="605" y2="242"
+              marker-end="url(#arrow)"/>
+
+        <!-- web-2 → slave-db (stage 3-9) -->
+        <line class="link flow"
+              :class="{visible: visibleAt(3, 9), dead: isDead('web-2') || isDead('slave-db')}"
+              x1="490" y1="332" x2="605" y2="332"
+              marker-end="url(#arrow)"/>
+
+        <!-- master-db → slave-db (replication, stage 3-9) -->
+        <line class="link flow replication"
+              :class="{visible: visibleAt(3, 9), dead: isDead('master-db') || isDead('slave-db')}"
+              x1="680" y1="270" x2="680" y2="305"
+              marker-end="url(#arrow)"/>
+
+        <!-- web-1 → cache (stage 4+) -->
+        <line class="link flow"
+              :class="{visible: visibleAt(4), dead: isDead('web-1') || isDead('cache')}"
+              x1="490" y1="232" x2="605" y2="158"
+              marker-end="url(#arrow)"/>
+
+        <!-- web-2 → cache (stage 4+) -->
+        <line class="link flow"
+              :class="{visible: visibleAt(4), dead: isDead('web-2') || isDead('cache')}"
+              x1="490" y1="318" x2="605" y2="172"
+              marker-end="url(#arrow)"/>
+
+        <!-- cache → master-db (cache miss, stages 4-9) -->
+        <line class="link"
+              :class="{visible: visibleAt(4, 9), dead: isDead('cache') || isDead('master-db')}"
+              x1="680" y1="180" x2="680" y2="212"
+              marker-end="url(#arrow)"/>
+
+        <!-- cache → shard-1 (cache miss, stage 10+) -->
+        <line class="link"
+              :class="{visible: visibleAt(10), dead: isDead('cache') || isDead('shard-1')}"
+              x1="680" y1="180" x2="680" y2="198"
+              marker-end="url(#arrow)"/>
+
+        <!-- user → cdn (stage 5+) -->
+        <line class="link flow"
+              :class="{visible: visibleAt(5), dead: isDead('cdn')}"
+              x1="80" y1="280" x2="80" y2="135"
+              marker-end="url(#arrow)"/>
+
+        <!-- web-1 → session-store (stage 6+) -->
+        <line class="link"
+              :class="{visible: visibleAt(6), dead: isDead('web-1') || isDead('session-store')}"
+              x1="420" y1="270" x2="420" y2="408"
+              marker-end="url(#arrow)"/>
+
+        <!-- web-2 → session-store (stage 6+) -->
+        <line class="link"
+              :class="{visible: visibleAt(6), dead: isDead('web-2') || isDead('session-store')}"
+              x1="430" y1="360" x2="430" y2="408"
+              marker-end="url(#arrow)"/>
+
+        <!-- web-1 → message-queue (stage 8+) -->
+        <line class="link flow"
+              :class="{visible: visibleAt(8), dead: isDead('web-1') || isDead('message-queue')}"
+              x1="490" y1="265" x2="600" y2="408"
+              marker-end="url(#arrow)"/>
+
+        <!-- message-queue → worker (stage 8+) -->
+        <line class="link flow"
+              :class="{visible: visibleAt(8), dead: isDead('message-queue') || isDead('worker')}"
+              x1="700" y1="437" x2="738" y2="437"
+              marker-end="url(#arrow)"/>
+
+        <!-- web-1 → shards (stage 10+) — single representative arrow into the shard stack -->
+        <line class="link flow"
+              :class="{visible: visibleAt(10), dead: isDead('web-1')}"
+              x1="490" y1="242" x2="605" y2="216"
+              marker-end="url(#arrow)"/>
+        <line class="link flow"
+              :class="{visible: visibleAt(10), dead: isDead('web-2')}"
+              x1="490" y1="332" x2="605" y2="330"
+              marker-end="url(#arrow)"/>
+
+        <!-- web-2 → nosql (stage 10+) — curves under the shard stack -->
+        <path class="link flow"
+              :class="{visible: visibleAt(10), dead: isDead('web-2') || isDead('nosql')}"
+              d="M 490 332 Q 620 400 770 320"
+              marker-end="url(#arrow)"/>
+
+      </svg>
+    </section>
+
+    <!-- ────────── side panel ────────── -->
+    <aside class="info">
+      <div class="stage-header">
+        <span class="badge" x-text="`Stage ${stage + 1} of ${stageCount}`"></span>
+        <h2 x-text="current.title"></h2>
+      </div>
+
+      <div class="info-block">
+        <h3>What changed</h3>
+        <p x-text="current.whatChanged"></p>
+      </div>
+
+      <div class="info-block">
+        <h3>Why</h3>
+        <p x-text="current.why"></p>
+      </div>
+
+      <div class="info-block tradeoffs">
+        <h3>Tradeoffs</h3>
+        <p x-text="current.tradeoffs"></p>
+      </div>
+
+      <div class="dead-panel" x-show="deadComponents.length">
+        <strong>Failed components.</strong>
+        Click a component to toggle.
+        <button @click="resetDead()">reset all</button>
+        <ul>
+          <template x-for="id in deadComponents" :key="id">
+            <li x-text="id"></li>
+          </template>
+        </ul>
+      </div>
+    </aside>
+  </main>
+
+  <!-- ────────── scrubber ────────── -->
+  <footer class="scrubber">
+    <button @click="prev()" :disabled="stage === 0" aria-label="previous stage">←</button>
+    <input type="range" min="0" :max="stageCount - 1" step="1" x-model.number="stage"
+           aria-label="stage scrubber">
+    <span class="stage-counter" x-text="`${stage + 1}/${stageCount}`"></span>
+    <button @click="next()" :disabled="stage === stageCount - 1" aria-label="next stage">→</button>
+  </footer>
+
+</body>
+</html>

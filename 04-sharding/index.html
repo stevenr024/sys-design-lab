@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sharding & Hotspots — Scale to Millions</title>
+  <link rel="stylesheet" href="../shared/styles.css">
+  <link rel="stylesheet" href="./styles.css">
+  <script src="./sharding.js"></script>
+  <script defer src="https://unpkg.com/alpinejs@3.14.1/dist/cdn.min.js"></script>
+</head>
+<body x-data="shardingLab">
+
+  <header class="site-header">
+    <a class="crumb" href="../">← all visualizations</a>
+    <h1>Sharding &amp; Hotspots</h1>
+    <span class="subtitle">distribute users across shards · inject a celebrity · watch one shard burn</span>
+  </header>
+
+  <main>
+
+    <!-- ────────── controls ────────── -->
+    <section class="controls">
+      <div class="control">
+        <label for="shard-key">shard by</label>
+        <select id="shard-key" x-model="shardKey">
+          <template x-for="opt in keyOptions" :key="opt.id">
+            <option :value="opt.id" x-text="opt.label"></option>
+          </template>
+        </select>
+        <span class="desc" x-text="keyOptions.find(o => o.id === shardKey)?.desc"></span>
+      </div>
+
+      <div class="control">
+        <label for="shard-count">shards</label>
+        <input id="shard-count" type="range" min="2" max="16" step="1" x-model.number="shardCount">
+        <span class="value" x-text="`${shardCount} shards`"></span>
+      </div>
+
+      <div class="control control-actions">
+        <label>actions</label>
+        <button class="btn" :class="{active: celebrityActive}" @click="toggleCelebrity()">
+          <span x-text="celebrityActive ? '🌟 remove celebrity' : '🌟 inject celebrity'"></span>
+        </button>
+        <button class="btn" @click="regenerate()">regenerate users</button>
+      </div>
+    </section>
+
+    <!-- ────────── shard grid ────────── -->
+    <section class="shards" :style="`grid-template-columns: repeat(${shardCount}, minmax(0, 1fr))`">
+      <template x-for="(shardUsers, idx) in shards" :key="idx">
+        <div class="shard-col" :class="{hotspot: celebrityActive && idx === celebShardIdx}">
+          <div class="shard-header">
+            <span class="label" x-text="`Shard ${idx}`"></span>
+            <span class="count" x-text="shardUsers.length"></span>
+          </div>
+          <div class="tile-grid">
+            <template x-for="user in shardUsers" :key="user.id">
+              <div class="tile"
+                   :class="{celebrity: user.isCelebrity}"
+                   :title="`${user.name} · id=${user.id} · ${user.country} · traffic=${user.traffic}`"></div>
+            </template>
+          </div>
+        </div>
+      </template>
+    </section>
+
+    <!-- ────────── histograms ────────── -->
+    <section class="histograms">
+      <div class="histogram">
+        <h4>Count per shard</h4>
+        <div class="bars">
+          <template x-for="(count, idx) in countDistribution" :key="idx">
+            <div class="bar-row" :class="{hotspot: celebrityActive && idx === celebShardIdx}">
+              <span class="bar-label" x-text="`Shard ${idx}`"></span>
+              <div class="bar-track">
+                <div class="bar-fill" :style="`width: ${(count / maxCount) * 100}%`"></div>
+              </div>
+              <span class="bar-value" x-text="count"></span>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <div class="histogram">
+        <h4>Traffic per shard</h4>
+        <div class="bars">
+          <template x-for="(t, idx) in trafficDistribution" :key="idx">
+            <div class="bar-row" :class="{hotspot: celebrityActive && idx === celebShardIdx}">
+              <span class="bar-label" x-text="`Shard ${idx}`"></span>
+              <div class="bar-track">
+                <div class="bar-fill" :style="`width: ${(t / maxTraffic) * 100}%`"></div>
+              </div>
+              <span class="bar-value" x-text="t"></span>
+            </div>
+          </template>
+        </div>
+      </div>
+    </section>
+
+    <!-- ────────── insights ────────── -->
+    <section class="insights">
+      <h4>What this tells you</h4>
+      <template x-for="(it, i) in insights" :key="i">
+        <div class="insight" :class="it.kind" x-text="it.text"></div>
+      </template>
+    </section>
+
+  </main>
+
+</body>
+</html>
