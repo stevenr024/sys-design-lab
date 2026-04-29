@@ -268,3 +268,7 @@ main {
   main { grid-template-columns: 1fr; grid-template-rows: 50vh auto; }
   .scenario-grid { grid-template-columns: 1fr; }
 }
+
+@media (max-width: 600px) {
+  main { grid-template-rows: 65vw auto; }
+}

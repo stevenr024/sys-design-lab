@@ -278,3 +278,7 @@ main {
   body { height: auto; overflow: auto; }
   main { grid-template-columns: 1fr; grid-template-rows: 50vh auto; }
 }
+
+@media (max-width: 600px) {
+  main { grid-template-rows: 65vw auto; }
+}
