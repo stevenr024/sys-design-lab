@@ -254,7 +254,7 @@ main {
 .scrubber .stage-counter {
   font-family: var(--mono);
   font-size: 0.78rem;
-  color: var(--text-dim);
+  color: var(--text-muted);
   min-width: 6ch;
   text-align: center;
 }

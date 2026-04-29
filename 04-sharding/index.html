@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Sharding & Hotspots — Scale to Millions</title>
+  <meta name="description" content="Distribute users across database shards by hash key. Inject a celebrity key to create a hotspot and explore fixes. Interactive system design visualization.">
   <link rel="stylesheet" href="../shared/styles.css">
   <link rel="stylesheet" href="./styles.css">
   <script src="./sharding.js"></script>
@@ -68,7 +69,7 @@
     <!-- ────────── histograms ────────── -->
     <section class="histograms">
       <div class="histogram">
-        <h4>Count per shard</h4>
+        <h2>Count per shard</h2>
         <div class="bars">
           <template x-for="(count, idx) in countDistribution" :key="idx">
             <div class="bar-row" :class="{hotspot: celebrityActive && idx === celebShardIdx}">
@@ -83,7 +84,7 @@
       </div>
 
       <div class="histogram">
-        <h4>Traffic per shard</h4>
+        <h2>Traffic per shard</h2>
         <div class="bars">
           <template x-for="(t, idx) in trafficDistribution" :key="idx">
             <div class="bar-row" :class="{hotspot: celebrityActive && idx === celebShardIdx}">
@@ -100,7 +101,7 @@
 
     <!-- ────────── insights ────────── -->
     <section class="insights">
-      <h4>What this tells you</h4>
+      <h2>What this tells you</h2>
       <template x-for="(it, i) in insights" :key="i">
         <div class="insight" :class="it.kind" x-text="it.text"></div>
       </template>

@@ -59,7 +59,7 @@ main {
 .control .desc {
   font-family: var(--mono);
   font-size: 0.72rem;
-  color: var(--text-dim);
+  color: var(--text-muted);
 }
 
 .control-actions {
@@ -166,7 +166,7 @@ main {
   padding: 1rem 1.1rem;
 }
 
-.histogram h4 {
+.histogram h2 {
   margin: 0 0 0.7rem;
   font-size: 0.78rem;
   text-transform: uppercase;
@@ -224,7 +224,7 @@ main {
   gap: 0.4rem;
 }
 
-.insights h4 {
+.insights h2 {
   margin: 0 0 0.4rem;
   font-size: 0.78rem;
   text-transform: uppercase;

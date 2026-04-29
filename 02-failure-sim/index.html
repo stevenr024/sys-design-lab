@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Failure Simulator — Scale to Millions</title>
+  <meta name="description" content="Kill any component in a multi-region architecture and watch which services degrade or go down. Interactive system design visualization.">
   <link rel="stylesheet" href="../shared/styles.css">
   <link rel="stylesheet" href="./styles.css">
   <script src="./failure-sim.js"></script>
@@ -231,7 +232,7 @@
       </div>
 
       <section>
-        <h3>Service health</h3>
+        <h2>Service health</h2>
         <div class="service-list">
           <template x-for="svc in services" :key="svc.id">
             <div class="service-row" :class="svc.state">
@@ -247,7 +248,7 @@
       </section>
 
       <section>
-        <h3>Try a scenario</h3>
+        <h2>Try a scenario</h2>
         <div class="scenario-grid">
           <template x-for="s in scenarios" :key="s.id">
             <button class="scenario-btn"
@@ -264,7 +265,7 @@
       </section>
 
       <section class="dead-list">
-        <h3>Failed components</h3>
+        <h2>Failed components</h2>
         <template x-if="!deadIds().length">
           <span class="empty">none — system intact</span>
         </template>

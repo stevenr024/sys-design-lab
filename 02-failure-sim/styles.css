@@ -139,7 +139,7 @@ main {
   gap: 1.5rem;
 }
 
-.info > section h3 {
+.info > section h2 {
   margin-bottom: 0.6rem;
 }
 
@@ -191,7 +191,7 @@ main {
   font-weight: 500;
 }
 .service-row .desc {
-  color: var(--text-dim);
+  color: var(--text-muted);
   font-size: 0.78rem;
   font-family: var(--mono);
   margin-top: 1px;
