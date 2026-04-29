@@ -131,9 +131,41 @@ document.addEventListener('alpine:init', () => {
 
     scenarios: SCENARIOS,
 
+    init() {
+      // Restore dead set from URL on load (no history push needed).
+      const raw = new URLSearchParams(location.search).get('dead');
+      if (raw) {
+        raw.split(',')
+          .filter(id => this.components.includes(id))
+          .forEach(id => { this.dead[id] = true; });
+      }
+
+      // Browser back/forward → re-read URL → restore dead set.
+      window.addEventListener('popstate', () => {
+        const r = new URLSearchParams(location.search).get('dead');
+        const ids = r ? r.split(',').filter(id => this.components.includes(id)) : [];
+        const next = {};
+        ids.forEach(id => { next[id] = true; });
+        this.dead = next;
+        this.activeScenario = null;
+      });
+    },
+
+    pushUrl() {
+      const ids = this.deadIds();
+      const url = new URL(window.location);
+      if (ids.length === 0) {
+        url.searchParams.delete('dead');
+      } else {
+        url.searchParams.set('dead', ids.join(','));
+      }
+      history.pushState({ dead: ids }, '', url);
+    },
+
     toggleDead(id) {
       this.dead = { ...this.dead, [id]: !this.dead[id] };
       this.activeScenario = null;
+      this.pushUrl();
     },
     isDead(id) { return !!this.dead[id]; },
     deadIds() { return this.components.filter(c => this.dead[c]); },
@@ -141,6 +173,7 @@ document.addEventListener('alpine:init', () => {
     resetDead() {
       this.dead = {};
       this.activeScenario = null;
+      this.pushUrl();
     },
 
     applyScenario(id) {
@@ -150,6 +183,7 @@ document.addEventListener('alpine:init', () => {
       s.kills.forEach(k => { next[k] = true; });
       this.dead = next;
       this.activeScenario = id;
+      this.pushUrl();
     },
 
     // Computed: service health rows.
